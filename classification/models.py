@@ -135,7 +135,7 @@ class PoolMA(nn.Module):
         super(PoolMA, self).__init__()
         self.mab = MAB(embed_dim)
         self.rff = nn.Linear(embed_dim, embed_dim)
-        self.s_param = nn.Parameter(torch.Tensor(1, 1, 64))
+        self.s_param = nn.Parameter(torch.Tensor(1, 1, embed_dim))
         nn.init.xavier_uniform_(self.s_param)
         self.to(device)
     
@@ -144,14 +144,15 @@ class PoolMA(nn.Module):
         attn_output = self.mab(self.s_param.repeat(1, Z.shape[1], 1), z)
         return attn_output
     
-class Set_Transformer(nn.Module):
+class SetTransformer(nn.Module):
     def __init__(self, input_dim, output_dim, embed_dim):
         super(Set_Transformer, self).__init__()
         self.lin1 = nn.Linear(input_dim, embed_dim)
         self.sab1 = SAB(embed_dim)
         self.sab2 = SAB(embed_dim)
-        self.pool = PoolMA(embed_dim)
         self.sab3 = SAB(embed_dim)
+        self.pool = PoolMA(embed_dim)
+        self.sab4 = SAB(embed_dim)
         self.rff = nn.Linear(embed_dim, output_dim)
         self.to(device)
     
@@ -159,9 +160,9 @@ class Set_Transformer(nn.Module):
         x = self.lin1(Z)
         x = self.sab1(x)
         x = self.sab2(x)
-        x = self.pool(x)
-        
         x = self.sab3(x)
+        x = self.pool(x)
+        x = self.sab4(x)
         x = self.rff(x)
         return x
     
